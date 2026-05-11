@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>四字熟語 学習 | 漢検準一級</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #ffffff;
+      --bg-secondary: #f5f5f3;
+      --text: #1a1a18;
+      --text-secondary: #6b6b68;
+      --text-tertiary: #9b9b97;
+      --border: rgba(0,0,0,0.12);
+      --border-hover: rgba(0,0,0,0.25);
+      --accent: #2C2C2A;
+      --accent-text: #F1EFE8;
+      --danger: #D85A30;
+      --danger-bg: #FAECE7;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #1a1a18;
+        --bg-secondary: #242422;
+        --text: #F1EFE8;
+        --text-secondary: #9b9b97;
+        --text-tertiary: #6b6b68;
+        --border: rgba(255,255,255,0.12);
+        --border-hover: rgba(255,255,255,0.25);
+        --accent: #F1EFE8;
+        --accent-text: #2C2C2A;
+        --danger: #E87050;
+        --danger-bg: #3a1f14;
+      }
+    }
+
+    body {
+      font-family: 'Noto Sans JP', sans-serif;
+      background: var(--bg-secondary);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    #app {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 2rem 1rem 4rem;
+    }
+
+    .page-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      margin-bottom: 1.75rem;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .page-title {
+      font-family: 'Noto Serif JP', serif;
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .page-subtitle {
+      font-size: 12px;
+      color: var(--text-secondary);
+      margin-top: 3px;
+    }
+
+    .controls {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .btn {
+      font-family: 'Noto Sans JP', sans-serif;
+      font-size: 12px;
+      padding: 6px 14px;
+      border-radius: 8px;
+      border: 0.5px solid var(--border-hover);
+      background: var(--bg);
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s;
+      white-space: nowrap;
+    }
+    .btn:hover { background: var(--bg-secondary); color: var(--text); }
+    .btn-danger { border-color: var(--danger); color: var(--danger); }
+    .btn-danger:hover { background: var(--danger-bg); }
+
+    .stats-bar {
+      display: flex;
+      gap: 20px;
+      margin-bottom: 1.25rem;
+      font-size: 12px;
+      color: var(--text-secondary);
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .stat-num { font-weight: 500; color: var(--text); }
+    .stat-err { color: var(--danger); }
+
+    .filter-tabs {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 1.25rem;
+      border-bottom: 0.5px solid var(--border);
+      padding-bottom: 10px;
+      flex-wrap: wrap;
+    }
+
+    .tab {
+      font-family: 'Noto Sans JP', sans-serif;
+      font-size: 12px;
+      padding: 4px 14px;
+      border-radius: 20px;
+      border: 0.5px solid var(--border);
+      background: transparent;
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .tab:hover { border-color: var(--border-hover); color: var(--text); }
+    .tab.active { background: var(--accent); color: var(--accent-text); border-color: var(--accent); }
+
+    .hint {
+      font-size: 11px;
+      color: var(--text-tertiary);
+      margin-bottom: 1rem;
+    }
+
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
+      gap: 12px;
+    }
+
+    .card {
+      background: var(--bg);
+      border: 0.5px solid var(--border);
+      border-radius: 12px;
+      padding: 1rem 1.25rem;
+      transition: border-color 0.15s;
+    }
+    .card:hover { border-color: var(--border-hover); }
+    .card.marked { border-left: 2.5px solid var(--danger); }
+
+    .card-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      margin-bottom: 10px;
+      gap: 8px;
+    }
+
+    .card-reading {
+      font-size: 11px;
+      color: var(--text-secondary);
+      letter-spacing: 0.05em;
+      margin-bottom: 4px;
+    }
+
+    .card-kanji {
+      font-family: 'Noto Serif JP', serif;
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      cursor: pointer;
+      display: inline-block;
+      position: relative;
+      user-select: none;
+      color: var(--text);
+      line-height: 1.3;
+      border-radius: 3px;
+      transition: color 0.15s, background 0.15s;
+    }
+
+    .card-kanji.hidden {
+      color: transparent;
+      background: var(--text);
+    }
+    .card-kanji.hidden::after {
+      content: 'タップで表示';
+      position: absolute;
+      left: 50%; top: 50%;
+      transform: translate(-50%, -50%);
+      font-family: 'Noto Sans JP', sans-serif;
+      font-size: 9px;
+      font-weight: 400;
+      color: var(--bg);
+      white-space: nowrap;
+      letter-spacing: 0;
+    }
+
+    .card-kanji.revealed::after {
+      content: 'タップで隠す';
+      position: absolute;
+      left: 50%; top: calc(100% + 4px);
+      transform: translateX(-50%);
+      font-family: 'Noto Sans JP', sans-serif;
+      font-size: 9px;
+      color: var(--text-tertiary);
+      white-space: nowrap;
+      letter-spacing: 0;
+      opacity: 0;
+      transition: opacity 0.15s;
+      pointer-events: none;
+    }
+    .card-kanji.revealed:hover::after { opacity: 1; }
+
+    .card-kanji.pop { animation: pop 0.2s ease-out; }
+    @keyframes pop {
+      0% { transform: scale(0.9); opacity: 0.6; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
+    .card-meaning {
+      font-size: 12px;
+      color: var(--text-secondary);
+      line-height: 1.7;
+      border-top: 0.5px solid var(--border);
+      padding-top: 8px;
+      margin-top: 8px;
+    }
+
+    .check-wrap {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      flex-shrink: 0;
+      margin-top: 2px;
+      cursor: pointer;
+    }
+    .check-label {
+      font-size: 11px;
+      color: var(--text-tertiary);
+      user-select: none;
+    }
+    input[type="checkbox"].err-check {
+      width: 16px; height: 16px;
+      cursor: pointer;
+      accent-color: var(--danger);
+      flex-shrink: 0;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 3rem 1rem;
+      color: var(--text-secondary);
+      font-size: 13px;
+    }
+
+    @media (max-width: 480px) {
+      .cards-grid { grid-template-columns: 1fr; }
+      .page-header { flex-direction: column; }
+    }
+  </style>
+</head>
+<body>
+<div id="app">
+  <div class="page-header">
+    <div>
+      <div class="page-title">四字熟語 学習</div>
+      <div class="page-subtitle">漢検準一級レベル</div>
+    </div>
+    <div class="controls">
+      <button class="btn" id="btn-reveal-all">すべて表示</button>
+      <button class="btn" id="btn-hide-all">すべて隠す</button>
+      <button class="btn btn-danger" id="btn-clear-marks">チェックをリセット</button>
+    </div>
+  </div>
+
+  <div class="stats-bar">
+    <div>全 <span class="stat-num" id="total-count">—</span> 語</div>
+    <div>表示中 <span class="stat-num" id="visible-count">—</span> 語</div>
+    <div class="stat-err">✕ <span id="err-count">0</span> 要復習</div>
+  </div>
+
+  <div class="filter-tabs">
+    <button class="tab active" data-filter="all">すべて</button>
+    <button class="tab" data-filter="marked">要復習のみ</button>
+    <button class="tab" data-filter="unmarked">未チェックのみ</button>
+  </div>
+
+  <p class="hint">黒塗り部分をクリック・タップすると漢字が表示されます（再度クリックで隠せます）</p>
+
+  <div id="cards-container">
+    <div class="cards-grid" id="cards-grid"></div>
+  </div>
+</div>
+
+<script>
+const YOJI_DATA = [
+  {k:"愛及屋烏",r:"あいきゅうおくう",m:"特定の人物を非常に深く慕うあまり、その人に関連する些細な物まですべてがいとおしく感じること。"},
+  {k:"哀鴻遍野",r:"あいこうへんや",m:"居場所を失い彷徨う人々が至る所に溢れ、悲惨な状況が広がっている様子。"},
+  {k:"曖昧模糊",r:"あいまいもこ",m:"物事の輪郭がぼやけていて、実体がはっきりしない様子。"},
+  {k:"愛楊葉児",r:"あいようように",m:"わずかな知識を得ただけで満足してしまい、物事の真実を深く究めようとしない態度を戒める言葉。"},
+  {k:"浅瀬仇波",r:"あさせあだなみ",m:"思慮が足りない人物ほど、気にする必要のない小さな出来事に対して大騒ぎすること。"},
+  {k:"阿世曲学",r:"あせいきょくがく",m:"私利私欲のために真理をねじ曲げ、時の権力者や世間に気に入られるようへつらうこと。"},
+  {k:"可惜身命",r:"あたらしんみょう",m:"自分自身の心身をいとおしみ、大切に扱うこと。"},
+  {k:"阿鼻叫喚",r:"あびきょうかん",m:"目も当てられないほどむごたらしい惨状に、絶望的な叫びが響き渡る様子。"},
+  {k:"阿附迎合",r:"あふげいごう",m:"相手に気に入られるよう、自分の意見を捨てて機嫌を取り、付き従うこと。"},
+  {k:"按甲休兵",r:"あんこうきゅうへい",m:"争いをやめ、装備を解いて休息すること。"},
+  {k:"安車蒲輪",r:"あんしゃほりん",m:"年配者を敬い、手厚くもてなすこと。"},
+  {k:"按図索駿",r:"あんずさくしゅん",m:"古い知識や形式にこだわり、現実に応じた柔軟な対応ができないことの例え。"},
+  {k:"暗箭傷人",r:"あんせんしょうじん",m:"陰で卑劣な手段を使い、他人を陥れたりそしったりすること。"},
+  {k:"暗中摸索",r:"あんちゅうもさく",m:"解決の糸口が見えない中、手探りであれこれと試みること。"},
+  {k:"按兵不動",r:"あんぺいふどう",m:"機会をじっと待ち、むやみに動かず状況を見守ること。"},
+  {k:"以夷征夷",r:"いいせいい",m:"自ら手を下さず、対立する勢力同士をぶつけることで自分の利益を得る外交戦略。"},
+  {k:"意気軒昂",r:"いきけんこう",m:"活力がみなぎり、奮い立っている様子。"},
+  {k:"衣錦之栄",r:"いきんのえい",m:"成功して立派な姿になり、故郷へ名誉ある帰還を果たすこと。"},
+  {k:"郁郁青青",r:"いくいくせいせい",m:"植物が勢いよく育ち、芳しい香りが漂っている様子。"},
+  {k:"夷険一節",r:"いけんいっせつ",m:"どんな状況になっても、自分の志を最後まで曲げずに守り通すこと。"},
+  {k:"衣繍夜行",r:"いしゅうやこう",m:"成功しても誰にも知られなければ、その価値がないという例え。"},
+  {k:"一飲一啄",r:"いちいんいったく",m:"欲張らず、自分の身の丈に合った自由な暮らしをすること。"},
+  {k:"一日之長",r:"いちじつのちょう",m:"年齢や経験がわずかに勝り、知識や技術が少しだけ優れていること。"},
+  {k:"一入再入",r:"いちじゅうさいじゅう",m:"何度も染めることから、他人から受けた恩が非常に深いことの例え。"},
+  {k:"一望千頃",r:"いちぼうせんけい",m:"一目で遥か遠くまで見渡せる、広大な風景のこと。"},
+  {k:"一夜検校",r:"いちやけんぎょう",m:"急激に大金持ちになることの例え。"},
+  {k:"一竜一猪",r:"いちりょういっちょ",m:"懸命に学ぶ者と怠ける者では、将来的に大きな実力差が出るということ。"},
+  {k:"一蓮托生",r:"いちれんたくしょう",m:"結果がどうなろうとも、運命を最後まで共にすること。"},
+  {k:"一割之利",r:"いっかつのり",m:"平凡な人物でも、たまには役に立つことがあるという例え。"},
+  {k:"一竿風月",r:"いっかんのふうげつ",m:"俗世を離れ、自然の中で趣味を楽しみながら悠々と暮らすこと。"},
+  {k:"一虚一盈",r:"いっきょいちえい",m:"状況が絶えず移り変わり、予測が難しいこと。"},
+  {k:"一琴一鶴",r:"いっきんいっかく",m:"持ち物が少なく、生活が非常に清らかで誠実なこと。"},
+  {k:"一顧傾城",r:"いっこけいせい",m:"国を揺るがすほど非常に美しい女性のこと。"},
+  {k:"一壺千金",r:"いっこせんきん",m:"普段は価値のない物でも、時と場合によっては非常に役立つこと。"},
+  {k:"一張一弛",r:"いっちょういっし",m:"厳しく接したり、時には緩めたりすること。適度な緊張と緩和。"}
+];
+
+let markedSet = new Set();
+let revealedSet = new Set();
+let currentFilter = 'all';
+
+try { const s = localStorage.getItem('yoji_marked'); if (s) markedSet = new Set(JSON.parse(s)); } catch(e) {}
+
+function saveMarks() { try { localStorage.setItem('yoji_marked', JSON.stringify([...markedSet])); } catch(e) {} }
+
+function getFiltered() {
+  if (currentFilter === 'marked') return YOJI_DATA.filter(d => markedSet.has(d.k));
+  if (currentFilter === 'unmarked') return YOJI_DATA.filter(d => !markedSet.has(d.k));
+  return YOJI_DATA;
+}
+
+function updateStats() {
+  const filtered = getFiltered();
+  document.getElementById('total-count').textContent = YOJI_DATA.length;
+  document.getElementById('visible-count').textContent = filtered.length;
+  document.getElementById('err-count').textContent = markedSet.size;
+}
+
+function renderCards() {
+  const container = document.getElementById('cards-container');
+  const filtered = getFiltered();
+  if (filtered.length === 0) {
+    container.innerHTML = '<div class="empty-state">該当する四字熟語がありません</div>';
+    updateStats(); return;
+  }
+  container.innerHTML = '<div class="cards-grid" id="cards-grid"></div>';
+  const grid = document.getElementById('cards-grid');
+
+  filtered.forEach(d => {
+    const isMarked = markedSet.has(d.k);
+    const isRevealed = revealedSet.has(d.k);
+    const card = document.createElement('div');
+    card.className = 'card' + (isMarked ? ' marked' : '');
+    card.dataset.key = d.k;
+    card.innerHTML = `
+      <div class="card-top">
+        <div>
+          <div class="card-reading">${d.r}</div>
+          <div class="card-kanji ${isRevealed ? 'revealed' : 'hidden'}" data-key="${d.k}">${d.k}</div>
+        </div>
+        <label class="check-wrap">
+          <input type="checkbox" class="err-check" data-key="${d.k}"${isMarked ? ' checked' : ''}>
+          <span class="check-label">要復習</span>
+        </label>
+      </div>
+      <div class="card-meaning">${d.m}</div>
+    `;
+    grid.appendChild(card);
+  });
+
+  grid.addEventListener('click', e => {
+    const kanji = e.target.closest('.card-kanji');
+    if (kanji) {
+      const key = kanji.dataset.key;
+      if (kanji.classList.contains('hidden')) {
+        revealedSet.add(key);
+        kanji.classList.remove('hidden');
+        kanji.classList.add('revealed', 'pop');
+        setTimeout(() => kanji.classList.remove('pop'), 200);
+      } else {
+        revealedSet.delete(key);
+        kanji.classList.remove('revealed');
+        kanji.classList.add('hidden');
+      }
+      return;
+    }
+    const cb = e.target.closest('.err-check');
+    if (cb) {
+      const key = cb.dataset.key;
+      const card = cb.closest('.card');
+      if (cb.checked) { markedSet.add(key); card.classList.add('marked'); }
+      else { markedSet.delete(key); card.classList.remove('marked'); }
+      saveMarks(); updateStats();
+      if (currentFilter !== 'all') setTimeout(renderCards, 150);
+    }
+  });
+
+  updateStats();
+}
+
+document.getElementById('btn-reveal-all').addEventListener('click', () => {
+  getFiltered().forEach(d => revealedSet.add(d.k)); renderCards();
+});
+document.getElementById('btn-hide-all').addEventListener('click', () => {
+  getFiltered().forEach(d => revealedSet.delete(d.k)); renderCards();
+});
+document.getElementById('btn-clear-marks').addEventListener('click', () => {
+  if (!confirm('チェックをすべてリセットしますか？')) return;
+  markedSet.clear(); saveMarks(); renderCards();
+});
+document.querySelectorAll('.tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    currentFilter = tab.dataset.filter;
+    renderCards();
+  });
+});
+
+renderCards();
+</script>
+</body>
+</html>
